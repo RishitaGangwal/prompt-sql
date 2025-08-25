@@ -7,10 +7,7 @@ COPY .mvn .mvn
 COPY src src
 
 RUN chmod +x mvnw
-
 RUN ./mvnw clean package -DskipTests
-
-ARG JAR_FILE=target/server.jar
 
 EXPOSE 8080
 
