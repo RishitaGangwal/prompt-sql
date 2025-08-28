@@ -63,8 +63,9 @@ export default function SignUpPage() {
   };
 
   const handleGoogleSignUp = () => {
-    window.location.href = "http://localhost:8080/oauth2/authorization/google";
+    window.location.href = `${process.env.REACT_APP_BACKEND_URL}/oauth2/authorization/google`;
   };
+
 
   return (
     <div className="min-h-screen bg-gray-50">

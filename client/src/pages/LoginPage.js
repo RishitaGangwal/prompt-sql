@@ -25,9 +25,10 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:8080/oauth2/authorization/google";
-  };
+const handleGoogleLogin = () => {
+  window.location.href = `${process.env.REACT_APP_BACKEND_URL}/oauth2/authorization/google`;
+};
+
 
   return (
     <div className="min-h-screen bg-gray-50">
