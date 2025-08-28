@@ -1,5 +1,7 @@
 package com.promptsql.server.config;
 import com.promptsql.server.service.JwtService;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -15,12 +17,18 @@ public class SecurityConfig {
 
     private final JwtService jwtService;
 
+    @Value("${frontend.url}")
+private String frontendUrl;
+
+
     public SecurityConfig(JwtService jwtService) {
         this.jwtService = jwtService;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
+        
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
@@ -40,14 +48,15 @@ public class SecurityConfig {
                             String token = jwtService.generateToken(email);
 
 
-                            String redirectUrl = String.format(
-                                    "http://localhost:3000/oauth2/redirect?token=%s&email=%s&firstName=%s&lastName=%s",
-                                    token,
-                                    URLEncoder.encode(email, "UTF-8"),
-                                    URLEncoder.encode(firstName, "UTF-8"),
-                                    URLEncoder.encode(lastName, "UTF-8")
-                            );
-                            response.sendRedirect(redirectUrl);
+                           String redirectUrl = String.format(
+    "%s/oauth2/redirect?token=%s&email=%s&firstName=%s&lastName=%s",
+    frontendUrl,
+    token,
+    URLEncoder.encode(email, "UTF-8"),
+    URLEncoder.encode(firstName, "UTF-8"),
+    URLEncoder.encode(lastName, "UTF-8")
+);
+response.sendRedirect(redirectUrl);
 
                         })
                 )
