@@ -26,7 +26,8 @@ export default function LoginPage() {
   };
 
 const handleGoogleLogin = () => {
-  window.location.href = `${process.env.REACT_APP_BACKEND_URL}/oauth2/authorization/google`;
+  const backendBase = process.env.REACT_APP_API_URL.replace("/api", "");
+  window.location.href = `${backendBase}/oauth2/authorization/google`;
 };
 
 
