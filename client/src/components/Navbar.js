@@ -14,7 +14,6 @@ const Navbar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
 
  useEffect(() => {
-  const updateUser = () => {
     const token = localStorage.getItem("token");
     if (token) {
       try {
@@ -24,23 +23,12 @@ const Navbar = () => {
           setUser({ firstName: decoded.firstName, email: decoded.sub });
         } else {
           localStorage.removeItem("token");
-          setUser(null);
         }
       } catch (e) {
         localStorage.removeItem("token");
-        setUser(null);
       }
-    } else {
-      setUser(null);
     }
-  };
-
-  updateUser();
-
-  window.addEventListener("storage", updateUser);
-
-  return () => window.removeEventListener("storage", updateUser);
-}, []);
+  }, []);;
 
 
   const handleAvatarClick = (event) => {
