@@ -13,22 +13,35 @@ const Navbar = () => {
   const [user, setUser] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
 
- useEffect(() => {
+useEffect(() => {
+  const updateUser = () => {
     const token = localStorage.getItem("token");
     if (token) {
       try {
         const decoded = JSON.parse(atob(token.split(".")[1]));
         const now = Date.now() / 1000;
-        if (!decoded.exp || decoded.exp > now) {
-          setUser({ firstName: decoded.firstName, email: decoded.sub });
-        } else {
+        if (decoded.exp && decoded.exp < now) {
+         
           localStorage.removeItem("token");
+          setUser(null);
+        } else {
+          setUser({ firstName: decoded.firstName, email: decoded.sub });
         }
       } catch (e) {
         localStorage.removeItem("token");
+        setUser(null);
       }
+    } else {
+      setUser(null);
     }
-  }, []);;
+  };
+
+  updateUser();
+
+  window.addEventListener("storage", updateUser);
+  return () => window.removeEventListener("storage", updateUser);
+}, []);
+
 
 
   const handleAvatarClick = (event) => {
