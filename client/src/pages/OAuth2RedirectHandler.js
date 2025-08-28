@@ -21,6 +21,7 @@ export default function OAuth2RedirectHandler() {
       localStorage.setItem("user", JSON.stringify(user));
     }
 
+    window.dispatchEvent(new Event("storage"));
     navigate("/dashboard", { replace: true });
   }, [location, navigate]);
 
