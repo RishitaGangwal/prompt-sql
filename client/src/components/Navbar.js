@@ -18,7 +18,12 @@ const Navbar = () => {
     if (token) {
       try {
         const decoded = JSON.parse(atob(token.split(".")[1]));
-        setUser({ firstName: decoded.firstName, email: decoded.sub });
+        const now = Date.now() / 1000;
+        if (!decoded.exp || decoded.exp > now) {
+          setUser({ firstName: decoded.firstName, email: decoded.sub });
+        } else {
+          localStorage.removeItem("token");
+        }
       } catch (e) {
         localStorage.removeItem("token");
       }
@@ -105,8 +110,7 @@ const Navbar = () => {
                       height: { xs: 36, sm: 40, md: 45 },
                       width: { xs: 36, sm: 40, md: 45 },
                     }}
-                  ></Avatar>
-
+                  />
                   <Menu
                     anchorEl={anchorEl}
                     open={Boolean(anchorEl)}
