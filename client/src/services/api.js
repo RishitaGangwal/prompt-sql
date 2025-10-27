@@ -1,39 +1,74 @@
 import axios from "axios";
 
-const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
-});
+const BASE_URL = process.env.REACT_APP_API_URL;
 
+export const api = {
+  signup: async (data) =>
+    (
+      await fetch(`${BASE_URL}/auth/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+    ).json(),
 
-console.log("API URL:", process.env.REACT_APP_API_URL);
+  login: async (data) =>
+    (
+      await fetch(`${BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+    ).json(),
 
+  saveBasicInfo: async (data) =>
+    (
+      await fetch(`${BASE_URL}/user/basic`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(data),
+      })
+    ).json(),
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+  verifyUser: async (email, otp) =>
+    (
+      await fetch(`${BASE_URL}/user/verify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, otp }),
+      })
+    ).json(),
 
-const apiService = {
-  login: async (credentials) => {
-    const response = await api.post("/auth/login", credentials);
-    return response.data;
+  addCard: async (card) => {
+    const res = await fetch(`${BASE_URL}/user/cards`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify(card),
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    try {
+      return await res.json();
+    } catch {
+      return { message: "No JSON returned" };
+    }
   },
 
-  signup: async (data) => {
-    const response = await api.post("/auth/signup", data);
-    return response.data;
-  },
-
-  generateQuery: async (data) => {
-    const response = await api.post("/generate-query", data);
-    return response.data;
-  },
-
-  explainQuery: async (sql) => {
-    const response = await api.post("/explain-query", { sql });
-    return response.data;
+  getCards: async () => {
+    const email = localStorage.getItem("email");
+    const res = await fetch(`${BASE_URL}/user/cards?email=${email}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
   },
 };
-
-export default apiService;
