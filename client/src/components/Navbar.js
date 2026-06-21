@@ -19,7 +19,7 @@ useEffect(() => {
     if (token) {
       try {
         const decoded = JSON.parse(atob(token.split(".")[1]));
-<<<<<<< HEAD
+
         const now = Date.now() / 1000;
         if (decoded.exp && decoded.exp < now) {
          
@@ -28,9 +28,8 @@ useEffect(() => {
         } else {
           setUser({ firstName: decoded.firstName, email: decoded.sub });
         }
-=======
+
         setUser({ firstName: decoded.firstName, email: decoded.sub });
->>>>>>> 0492510 (improve query generation and explanation)
       } catch (e) {
         localStorage.removeItem("token");
         setUser(null);
