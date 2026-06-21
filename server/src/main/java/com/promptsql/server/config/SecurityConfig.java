@@ -18,7 +18,7 @@ public class SecurityConfig {
     private final JwtService jwtService;
 
     @Value("${frontend.url}")
-private String frontendUrl;
+   private String frontendUrl;
 
 
     public SecurityConfig(JwtService jwtService) {

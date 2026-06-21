@@ -24,7 +24,9 @@ public class QueryService {
     private String apiKey;
 
     private static final String GEMINI_API_URL =
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+//            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
     public QueryResponse generateSQL(QueryRequest request) {
         RestTemplate restTemplate = new RestTemplate();
@@ -52,7 +54,7 @@ public class QueryService {
             LOGGER.info("Raw response from Gemini API: " + body);
 
             if (body == null || body.isEmpty()) {
-                return new QueryResponse("","Empty response from API. Check logs.");
+                return new QueryResponse("", "Empty response from API. Check logs.");
             }
 
 
@@ -61,7 +63,7 @@ public class QueryService {
             JsonNode textNode = root.at("/candidates/0/content/parts/0/text");
 
             if (textNode.isMissingNode() || textNode.asText().isEmpty()) {
-                return new QueryResponse("","No SQL generated. Response format unexpected.");
+                return new QueryResponse("", "No SQL generated. Response format unexpected.");
             }
 
             String sql = textNode.asText().trim();
@@ -70,14 +72,14 @@ public class QueryService {
                     .trim();
             sql = formatSql(sql);
 
-            return new QueryResponse(sql,"");
+            return new QueryResponse(sql, "");
 
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             LOGGER.severe("API error: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
-            return new QueryResponse("","API error: " + e.getStatusCode() + ". Check logs.");
+            return new QueryResponse("", "API error: " + e.getStatusCode() + ". Check logs.");
         } catch (Exception e) {
             LOGGER.severe("Unexpected error: " + e.getMessage());
-            return new QueryResponse("","Server error occurred. Check logs.");
+            return new QueryResponse("", "Server error occurred. Check logs.");
         }
     }
 
@@ -94,12 +96,27 @@ public class QueryService {
                 .trim();
     }
 
-    public QueryResponse explainSQL(String sqlQuery){
+    public QueryResponse explainSQL(String sqlQuery) {
         RestTemplate restTemplate = new RestTemplate();
 
-        String prompt = String.format("Explain the following MySQL query in simple terms, step by step:\n\n%s ",sqlQuery);
+        String prompt = String.format("""
+                You are a SQL mentor.
 
-        String requestBody = String.format( "{\"contents\": [{\"parts\": [{\"text\": \"%s\"}]}]}",
+                Return explanation in this format:
+
+                Purpose:
+                <1 line>
+
+                Key Points:
+                • point 1
+                • point 2
+                • point 3
+
+                SQL:
+                %s
+                """, sqlQuery);
+
+        String requestBody = String.format("{\"contents\": [{\"parts\": [{\"text\": \"%s\"}]}]}",
                 prompt.replace("\n", "\\n").replace("\"", "\\\""));
 
         HttpHeaders headers = new HttpHeaders();
@@ -114,7 +131,7 @@ public class QueryService {
             LOGGER.info("Raw response from Gemini API(explain MySQL): " + body);
 
             if (body == null || body.isEmpty()) {
-                return new QueryResponse("","Empty response from API. Check logs.");
+                return new QueryResponse("", "Empty response from API. Check logs.");
             }
 
             ObjectMapper mapper = new ObjectMapper();
@@ -122,7 +139,7 @@ public class QueryService {
             JsonNode textNode = root.at("/candidates/0/content/parts/0/text");
 
             if (textNode.isMissingNode() || textNode.asText().isEmpty()) {
-                return new QueryResponse("","No SQL generated. Response format unexpected.");
+                return new QueryResponse("", "No SQL generated. Response format unexpected.");
             }
 
             String explanation = textNode.asText().trim();
@@ -130,14 +147,14 @@ public class QueryService {
                     .replaceAll("`", "");
 
 
-            return new QueryResponse("",explanation);
+            return new QueryResponse("", explanation);
 
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             LOGGER.severe("API error: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
-            return new QueryResponse("","API error: " + e.getStatusCode() + ". Check logs.");
+            return new QueryResponse("", "API error: " + e.getStatusCode() + ". Check logs.");
         } catch (Exception e) {
             LOGGER.severe("Unexpected error: " + e.getMessage());
-            return new QueryResponse("","Server error occurred. Check logs.");
+            return new QueryResponse("", "Server error occurred. Check logs.");
         }
 
     }
