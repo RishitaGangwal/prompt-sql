@@ -1,5 +1,6 @@
 package com.promptsql.server.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.promptsql.server.model.QueryRequest;
@@ -28,13 +29,30 @@ public class QueryService {
 
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
-    public QueryResponse generateSQL(QueryRequest request) {
+    public QueryResponse generateSQL(QueryRequest request) throws JsonProcessingException {
         RestTemplate restTemplate = new RestTemplate();
 
-        String prompt = String.format(
-                "Generate a MySQL query based on the following schema and instructions:\n" +
-                        "Table: %s\nFields: %s\nInstructions: %s\nReturn only the SQL query.",
-                request.getTableName(), request.getFields(), request.getQueryInstructions()
+        String prompt = String.format("""
+                        Generate a MySQL query.
+
+                        Schema:
+                        Table: %s
+                        Fields: %s
+
+                        Requirement:
+                        %s
+
+                        Return ONLY valid JSON:
+
+                        {
+                          "sql":"...",
+                          "difficulty":"Easy/Medium/Hard",
+                          "queryType":"SELECT/JOIN/GROUP BY/Aggregation"
+                        }
+                        """,
+                request.getTableName(),
+                request.getFields(),
+                request.getQueryInstructions()
         );
 
         String requestBody = String.format(
@@ -48,14 +66,14 @@ public class QueryService {
 
         HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
 
-        try {
+
             ResponseEntity<String> response = restTemplate.postForEntity(GEMINI_API_URL, entity, String.class);
             String body = response.getBody();
             LOGGER.info("Raw response from Gemini API: " + body);
 
-            if (body == null || body.isEmpty()) {
-                return new QueryResponse("", "Empty response from API. Check logs.");
-            }
+        if (body == null || body.isEmpty()) {
+            throw new RuntimeException("Empty response from Gemini");
+        }
 
 
             ObjectMapper mapper = new ObjectMapper();
@@ -63,24 +81,29 @@ public class QueryService {
             JsonNode textNode = root.at("/candidates/0/content/parts/0/text");
 
             if (textNode.isMissingNode() || textNode.asText().isEmpty()) {
-                return new QueryResponse("", "No SQL generated. Response format unexpected.");
+                throw new RuntimeException("Response format unexpected");
             }
 
-            String sql = textNode.asText().trim();
-            sql = sql.replaceAll("(?s)```sql", "")
-                    .replaceAll("(?s)```", "")
+            String jsonText = textNode.asText()
+                    .replace("```json", "")
+                    .replace("```", "")
                     .trim();
+
+            JsonNode queryJson = mapper.readTree(jsonText);
+
+            String sql = queryJson.path("sql").asText("");
+            String difficulty = queryJson.path("difficulty").asText("Unknown");
+            String queryType = queryJson.path("queryType").asText("Unknown");
+
             sql = formatSql(sql);
 
-            return new QueryResponse(sql, "");
-
-        } catch (HttpClientErrorException | HttpServerErrorException e) {
-            LOGGER.severe("API error: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
-            return new QueryResponse("", "API error: " + e.getStatusCode() + ". Check logs.");
-        } catch (Exception e) {
-            LOGGER.severe("Unexpected error: " + e.getMessage());
-            return new QueryResponse("", "Server error occurred. Check logs.");
-        }
+            return new QueryResponse(
+                    sql,
+                    "",
+                    "",
+                    difficulty,
+                    queryType
+            );
     }
 
     private String formatSql(String sql) {
@@ -96,7 +119,7 @@ public class QueryService {
                 .trim();
     }
 
-    public QueryResponse explainSQL(String sqlQuery) {
+    public QueryResponse explainSQL(String sqlQuery) throws JsonProcessingException {
         RestTemplate restTemplate = new RestTemplate();
 
         String prompt = String.format("""
@@ -125,13 +148,13 @@ public class QueryService {
 
         HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
 
-        try {
+
             ResponseEntity<String> response = restTemplate.postForEntity(GEMINI_API_URL, entity, String.class);
             String body = response.getBody();
             LOGGER.info("Raw response from Gemini API(explain MySQL): " + body);
 
             if (body == null || body.isEmpty()) {
-                return new QueryResponse("", "Empty response from API. Check logs.");
+                return new QueryResponse("","Empty response from API. Check logs.","", "", "");
             }
 
             ObjectMapper mapper = new ObjectMapper();
@@ -139,7 +162,7 @@ public class QueryService {
             JsonNode textNode = root.at("/candidates/0/content/parts/0/text");
 
             if (textNode.isMissingNode() || textNode.asText().isEmpty()) {
-                return new QueryResponse("", "No SQL generated. Response format unexpected.");
+                return new QueryResponse("", "No SQL generated. Response format unexpected.","", "", "");
             }
 
             String explanation = textNode.asText().trim();
@@ -147,15 +170,101 @@ public class QueryService {
                     .replaceAll("`", "");
 
 
-            return new QueryResponse("", explanation);
+            return new QueryResponse(
+                    "",
+                    explanation,
+                    "",
+                    "",
+                    ""
+            );
 
-        } catch (HttpClientErrorException | HttpServerErrorException e) {
-            LOGGER.severe("API error: " + e.getStatusCode() + " - " + e.getResponseBodyAsString());
-            return new QueryResponse("", "API error: " + e.getStatusCode() + ". Check logs.");
-        } catch (Exception e) {
-            LOGGER.severe("Unexpected error: " + e.getMessage());
-            return new QueryResponse("", "Server error occurred. Check logs.");
-        }
+
+    }
+
+    public QueryResponse optimizeSQL(String sqlQuery) throws JsonProcessingException {
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        String prompt = String.format("""
+            You are a MySQL performance expert.
+
+            Analyze this query and return:
+
+            Performance Score: X/10
+
+            Issues:
+            - issue 1
+            - issue 2
+
+            Optimizations:
+            - optimization 1
+            - optimization 2
+
+            Optimized Query:
+            <query>
+
+            SQL:
+            %s
+            """, sqlQuery);
+
+        String requestBody = String.format(
+                "{\"contents\": [{\"parts\": [{\"text\": \"%s\"}]}]}",
+                prompt.replace("\n", "\\n")
+                        .replace("\"", "\\\"")
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Content-Type", "application/json");
+        headers.set("x-goog-api-key", apiKey);
+
+        HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+
+
+            ResponseEntity<String> response =
+                    restTemplate.postForEntity(
+                            GEMINI_API_URL,
+                            entity,
+                            String.class
+                    );
+
+            String body = response.getBody();
+
+            if (body == null || body.isEmpty()) {
+                return new QueryResponse(
+                        "",
+                        "",
+                        "Empty response from API",
+                        "",
+                        ""
+                );
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+
+            JsonNode root = mapper.readTree(body);
+
+            JsonNode textNode =
+                    root.at("/candidates/0/content/parts/0/text");
+
+            if (textNode.isMissingNode() || textNode.asText().isEmpty()) {
+                return new QueryResponse(
+                        "",
+                        "",
+                        "No optimization generated",
+                        "",
+                        ""
+                );
+            }
+
+            String optimization = textNode.asText().trim();
+
+            return new QueryResponse(
+                    "",
+                    "",
+                    optimization,
+                    "",
+                    ""
+            );
 
     }
 }

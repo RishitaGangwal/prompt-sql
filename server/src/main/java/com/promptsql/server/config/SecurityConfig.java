@@ -1,4 +1,5 @@
 package com.promptsql.server.config;
+
 import com.promptsql.server.service.JwtService;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +19,7 @@ public class SecurityConfig {
     private final JwtService jwtService;
 
     @Value("${frontend.url}")
-   private String frontendUrl;
+    private String frontendUrl;
 
 
     public SecurityConfig(JwtService jwtService) {
@@ -28,7 +29,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        
+
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
@@ -48,19 +49,20 @@ public class SecurityConfig {
                             String token = jwtService.generateToken(email);
 
 
-                           String redirectUrl = String.format(
-    "%s/oauth2/redirect?token=%s&email=%s&firstName=%s&lastName=%s",
-    frontendUrl,
-    token,
-    URLEncoder.encode(email, "UTF-8"),
-    URLEncoder.encode(firstName, "UTF-8"),
-    URLEncoder.encode(lastName, "UTF-8")
-);
-response.sendRedirect(redirectUrl);
+                            String redirectUrl = String.format(
+                                    "%s/oauth2/redirect?token=%s&email=%s&firstName=%s&lastName=%s",
+                                    frontendUrl,
+                                    token,
+                                    URLEncoder.encode(email, "UTF-8"),
+                                    URLEncoder.encode(firstName, "UTF-8"),
+                                    URLEncoder.encode(lastName, "UTF-8")
+                            );
+                            response.sendRedirect(redirectUrl);
 
                         })
                 )
-                .cors(cors -> {});
+                .cors(cors -> {
+                });
 
         return http.build();
     }

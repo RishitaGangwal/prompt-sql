@@ -2,9 +2,10 @@ import React from "react";
 import { Code, Copy, Download, FileText, Lightbulb, Play } from "lucide-react";
 
 const QueryResultDisplay = ({
-  userQuery,
   sqlQuery,
   explanation,
+  difficulty,
+  queryType,
   activeTab,
   isGenerating,
   isExplaining,
@@ -46,6 +47,17 @@ const QueryResultDisplay = ({
                 Generated SQL Query
               </h2>
             </div>
+            {sqlQuery && (
+              <div className="flex gap-2 mt-2">
+                <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
+                  {difficulty}
+                </span>
+
+                <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">
+                  {queryType}
+                </span>
+              </div>
+            )}
             {sqlQuery && !isGenerating && (
               <div className="flex gap-2">
                 <button

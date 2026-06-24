@@ -41,16 +41,30 @@ const QueryForm = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExplaining, setIsExplaining] = useState(false);
 
+  const [difficulty, setDifficulty] = useState("");
+  const [queryType, setQueryType] = useState("");
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsGenerating(true);
+
     try {
-      const data = { dbType: "MySQL", tableName, fields, queryInstructions };
+      const data = {
+        dbType: "MySQL",
+        tableName,
+        fields,
+        queryInstructions,
+      };
+
       const response = await api.generateQuery(data);
+
       setSqlQuery(response.sql || "");
+      setDifficulty(response.difficulty || "");
+      setQueryType(response.queryType || "");
     } catch (error) {
       console.log("Error generating query:", error);
     }
+
     setIsGenerating(false);
   };
 
@@ -236,6 +250,8 @@ const QueryForm = () => {
           <QueryResultDisplay
             sqlQuery={sqlQuery}
             explanation={explanation}
+            difficulty={difficulty}
+            queryType={queryType}
             activeTab={activeTab}
             isGenerating={isGenerating}
             isExplaining={isExplaining}

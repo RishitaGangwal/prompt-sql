@@ -1,27 +1,17 @@
 package com.promptsql.server.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class QueryResponse {
-    public String sql;
+    private String sql;
     private String explanation;
+    private String optimization;
+    private String difficulty;
+    private String queryType;
 
-    public QueryResponse(String sql, String explanation){
-        this.sql = sql;
-        this.explanation = explanation;
-    }
-
-    public String getSql() {
-        return sql;
-    }
-
-    public void setSql(String sql) {
-        this.sql = sql;
-    }
-
-    public String getExplanation() {
-        return explanation;
-    }
-
-    public void setExplanation(String explanation) {
-        this.explanation = explanation;
-    }
 }

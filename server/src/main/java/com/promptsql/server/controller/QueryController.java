@@ -35,4 +35,10 @@ public class QueryController {
         return queryService.explainSQL(sql);
 
     }
+
+    @PostMapping("/optimize-query")
+    public QueryResponse optimizeQuery(@RequestBody Map<String, String> body){
+
+        return queryService.optimizeSQL(body.get("sql"));
+    }
 }
