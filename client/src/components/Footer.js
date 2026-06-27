@@ -15,7 +15,7 @@ const Footer = () => {
       <Container maxWidth="lg">
         <div className="flex flex-col items-center justify-center text-center space-y-2">
           <Typography sx={{ color: "text.secondary", fontSize: "0.875rem" }}>
-            © 2025 Rishita Gangwal
+            © Rishita Gangwal. All Rights Reserved
           </Typography>
         </div>
       </Container>

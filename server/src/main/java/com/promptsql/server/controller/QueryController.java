@@ -1,5 +1,6 @@
 package com.promptsql.server.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.promptsql.server.model.QueryRequest;
 import com.promptsql.server.model.QueryResponse;
 import com.promptsql.server.service.QueryService;
@@ -22,13 +23,13 @@ public class QueryController {
     }
 
     @PostMapping("/generate-query")
-    public QueryResponse generateQuery(@RequestBody QueryRequest request){
+    public QueryResponse generateQuery(@RequestBody QueryRequest request) throws JsonProcessingException {
         return queryService.generateSQL(request);
 
     }
 
     @PostMapping("/explain-query")
-    public QueryResponse explainQuery(@RequestBody Map<String, String> body){
+    public QueryResponse explainQuery(@RequestBody Map<String, String> body) throws JsonProcessingException {
 
         String sql = body.get("sql");
 
@@ -37,7 +38,7 @@ public class QueryController {
     }
 
     @PostMapping("/optimize-query")
-    public QueryResponse optimizeQuery(@RequestBody Map<String, String> body){
+    public QueryResponse optimizeQuery(@RequestBody Map<String, String> body) throws JsonProcessingException {
 
         return queryService.optimizeSQL(body.get("sql"));
     }

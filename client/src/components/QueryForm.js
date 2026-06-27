@@ -81,7 +81,7 @@ const QueryForm = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 ">
+    <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
       <div className="max-w-7xl mx-auto mt-2">
         <Typography
           variant="h5"

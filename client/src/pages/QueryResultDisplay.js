@@ -38,7 +38,7 @@ const QueryResultDisplay = ({
     <div className="w-full lg:w-1/2">
       {activeTab === 0 && (
         <div className="bg-white rounded-2xl shadow-xl p-3 sm:p-4 border border-gray-100 h-[500px] flex flex-col">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-3 gap-3 sm:gap-0">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-green-100 rounded-lg">
                 <Play className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
@@ -47,17 +47,7 @@ const QueryResultDisplay = ({
                 Generated SQL Query
               </h2>
             </div>
-            {sqlQuery && (
-              <div className="flex gap-2 mt-2">
-                <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
-                  {difficulty}
-                </span>
-
-                <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">
-                  {queryType}
-                </span>
-              </div>
-            )}
+           
             {sqlQuery && !isGenerating && (
               <div className="flex gap-2">
                 <button
@@ -76,7 +66,19 @@ const QueryResultDisplay = ({
                 </button>
               </div>
             )}
+            
           </div>
+          {sqlQuery && (
+                  <div className="flex gap-2 mb-3 flex-wrap">
+                    <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">
+                      {difficulty}
+                    </span>
+
+                    <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">
+                      {queryType}
+                    </span>
+                  </div>
+                )}
 
           <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl p-4 sm:p-6 shadow-inner h-[400px] sm:h-[500px] flex flex-col">
             {isGenerating ? (
@@ -90,11 +92,13 @@ const QueryResultDisplay = ({
                 </p>
               </div>
             ) : (
-              <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
-                <pre className="text-green-400 font-mono text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
-                  {sqlQuery ||
-                    "🚀 Ready to generate your SQL query!\n\nFill out the form on the left and click 'Generate Query' to see your custom SQL statement appear here.\n\n✨ Features:\n• Copy to clipboard\n• Download as .sql file\n• Syntax highlighted display"}
-                </pre>
+              <div className="flex flex-col flex-1 min-h-0">
+                <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+                  <pre className="text-green-400 font-mono text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
+                    {sqlQuery ||
+                      "🚀 Ready to generate your SQL query!\n\nFill out the form on the left and click 'Generate Query' to see your custom SQL statement appear here.\n\n✨ Features:\n• Copy to clipboard\n• Download as .sql file\n• Syntax highlighted display"}
+                  </pre>
+                </div>
               </div>
             )}
           </div>
