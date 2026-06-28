@@ -4,7 +4,7 @@ public class QueryRequest {
 
     private String dbType;
     private String tableName;
-    private String fields;
+    private String schema;
     private String queryInstructions;
 
 
@@ -24,12 +24,12 @@ public class QueryRequest {
         this.tableName = tableName;
     }
 
-    public String getFields() {
-        return fields;
+    public String getSchema() {
+        return schema;
     }
 
-    public void setFields(String fields) {
-        this.fields = fields;
+    public void setSchema(String fields) {
+        this.schema = schema;
     }
 
     public String getQueryInstructions() {

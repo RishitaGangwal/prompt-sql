@@ -34,6 +34,11 @@ const apiService = {
     const response = await api.post("/explain-query", { sql });
     return response.data;
   },
+
+  optimizeQuery: async (sql) => {
+    const response = await api.post("/optimize-query", { sql });
+    return response.data;
+  },
 };
 
-export default apiService;
+export default apiService;  

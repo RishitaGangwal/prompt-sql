@@ -1,6 +1,7 @@
 package com.promptsql.server.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.promptsql.server.model.OptimizeResponse;
 import com.promptsql.server.model.QueryRequest;
 import com.promptsql.server.model.QueryResponse;
 import com.promptsql.server.service.QueryService;
@@ -38,7 +39,7 @@ public class QueryController {
     }
 
     @PostMapping("/optimize-query")
-    public QueryResponse optimizeQuery(@RequestBody Map<String, String> body) throws JsonProcessingException {
+        public OptimizeResponse optimizeQuery(@RequestBody Map<String, String> body) throws JsonProcessingException {
 
         return queryService.optimizeSQL(body.get("sql"));
     }

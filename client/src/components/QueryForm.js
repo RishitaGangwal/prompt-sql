@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {  Typography } from "@mui/material";
+import { Typography } from "@mui/material";
 import api from "../services/api";
 import { Code, Lightbulb, Zap } from "lucide-react";
 import QueryResultDisplay from "../pages/QueryResultDisplay";
@@ -31,7 +31,7 @@ const QueryForm = () => {
   }, []);
 
   const [tableName, setTableName] = useState("");
-  const [fields, setFields] = useState("");
+  const [schema, setSchema] = useState("");
   const [queryInstructions, setQueryInstructions] = useState("");
   const [sqlQuery, setSqlQuery] = useState("");
 
@@ -40,6 +40,13 @@ const QueryForm = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isExplaining, setIsExplaining] = useState(false);
+  const [optimization, setOptimization] = useState({
+    performanceScore: "",
+    issues: [],
+    suggestions: [],
+    optimizedQuery: "",
+  });
+  const [isOptimizing, setIsOptimizing] = useState(false);
 
   const [difficulty, setDifficulty] = useState("");
   const [queryType, setQueryType] = useState("");
@@ -52,7 +59,7 @@ const QueryForm = () => {
       const data = {
         dbType: "MySQL",
         tableName,
-        fields,
+        schema,
         queryInstructions,
       };
 
@@ -78,6 +85,34 @@ const QueryForm = () => {
       console.log("Error generating query:", error);
     }
     setIsExplaining(false);
+  };
+
+  const handleOptimizeQuery = async () => {
+    if (!userQuery.trim()) return;
+
+    setIsOptimizing(true);
+
+    try {
+      const response = await api.optimizeQuery(userQuery);
+
+      setOptimization({
+        performanceScore: response.performanceScore || "",
+        issues: response.issues || [],
+        suggestions: response.suggestions || [],
+        optimizedQuery: response.optimizedQuery || "",
+      });
+    } catch (error) {
+      console.log(error);
+
+      setOptimization({
+        performanceScore: "",
+        issues: [],
+        suggestions: [],
+        optimizedQuery: "",
+      });
+    }
+
+    setIsOptimizing(false);
   };
 
   return (
@@ -118,6 +153,17 @@ const QueryForm = () => {
               <Lightbulb className="w-5 h-5" />
               Analyze Written Query
             </button>
+            <button
+              onClick={() => setActiveTab(2)}
+              className={`flex items-center justify-center gap-2 px-4 sm:px-6 py-3 rounded-lg font-semibold transition-all duration-300 mt-1 sm:mt-0 ${
+                activeTab === 2
+                  ? "bg-green-500 text-white shadow-md"
+                  : "text-gray-600 hover:text-green-500 hover:bg-green-50"
+              }`}
+            >
+              <Zap className="w-5 h-5" />
+              Optimize Query
+            </button>
           </div>
         </div>
 
@@ -150,26 +196,32 @@ const QueryForm = () => {
 
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Fields
+                      Schema
                     </label>
-                    <input
-                      type="text"
-                      value={fields}
-                      onChange={(e) => setFields(e.target.value)}
-                      placeholder="e.g., id, name, department_id, amount, date"
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors duration-200"
+
+                    <textarea
+                      value={schema}
+                      onChange={(e) => setSchema(e.target.value)}
+                      placeholder={`employees:
+id
+name
+department_id
+
+departments:
+id
+department_name`}
+                      className="w-full h-24 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors duration-200 resize-none"
                     />
                   </div>
-
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Query Instructions
+                      Query Requirement
                     </label>
                     <textarea
                       value={queryInstructions}
                       onChange={(e) => setQueryInstructions(e.target.value)}
                       placeholder="e.g., List departments with >10 employees in last 3 months"
-                      rows={4}
+                      rows={2}
                       className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-colors duration-200 resize-none"
                     />
                   </div>
@@ -245,6 +297,53 @@ const QueryForm = () => {
                 </div>
               </div>
             )}
+
+            {activeTab === 2 && (
+              <div className="bg-white rounded-2xl shadow-xl p-4 border h-[500px] border-gray-100">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <Zap className="w-6 h-6 text-green-600" />
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+                    Your SQL Query
+                  </h2>
+                </div>
+
+                <div className="space-y-6">
+                  <div>
+                    <textarea
+                      value={userQuery}
+                      onChange={(e) => setUserQuery(e.target.value)}
+                      placeholder="Write or paste your SQL query here to get its optimization..."
+                      rows={12}
+                      className="w-full h-80 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:outline-none transition-colors duration-200 font-mono text-sm resize-none"
+                    />
+                  </div>
+
+                  <button
+                    onClick={handleOptimizeQuery}
+                    disabled={!userQuery.trim() || isOptimizing}
+                    className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-2 ${
+                      !userQuery.trim() || isOptimizing
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-gradient-to-br from-green-500 via-emerald-500 to-teal-500 hover:from-green-600 hover:via-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-green-200 hover:shadow-green-300 transform hover:-translate-y-1 hover:scale-[1.02]"
+                    }`}
+                  >
+                    {isOptimizing ? (
+                      <>
+                        <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+                        Optimizing...
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="w-5 h-5" />
+                        Optimize Query
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <QueryResultDisplay
@@ -255,6 +354,8 @@ const QueryForm = () => {
             activeTab={activeTab}
             isGenerating={isGenerating}
             isExplaining={isExplaining}
+            optimization={optimization}
+            isOptimizing={isOptimizing}
           />
         </div>
       </div>
